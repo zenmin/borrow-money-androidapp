@@ -36,8 +36,11 @@ public class BorrowHistory extends EntityModel {
     @Transient
     private String createTimeQuery;
 
-    @ApiModelProperty(value = "借款人")
+    @ApiModelProperty(value = "借款人", hidden = true)
     private Long uid;
+
+    @ApiModelProperty(value = "借款人", hidden = true)
+    private String uName;
 
     @ApiModelProperty(value = "借款月份6 12 24")
     private Integer month;

@@ -66,7 +66,14 @@ public class LoginServiceImpl implements LoginService {
         Object o = cacheMap.get(token);
         boolean b = Objects.nonNull(o);
         if (b) {
-            request.setAttribute(CommonConstant.ISADMIN, token.startsWith(CommonConstant.ADMIN_TOKEN_KEY) ? 1 : 0);
+            boolean isAdmin = token.startsWith(CommonConstant.ADMIN_TOKEN_KEY);
+            if (!isAdmin) {
+                GeneralUser generalUser = JSONUtil.parseObject(o.toString(), GeneralUser.class);
+                if (generalUser.getStatus() == 0) {
+                    throw new CommonException(DefinedCode.AUTHERROR, "用户已被禁用，请联系客服！");
+                }
+            }
+            request.setAttribute(CommonConstant.ISADMIN, isAdmin ? 1 : 0);
         }
         return b;
     }
@@ -82,11 +89,15 @@ public class LoginServiceImpl implements LoginService {
             throw new CommonException(DefinedCode.NOTFOUND, "用户未注册，请先注册！");
         }
 
+        if (generalUser.getStatus() == 0) {
+            throw new CommonException(DefinedCode.AUTHERROR, "用户已被禁用，请联系客服！");
+        }
+
         // 验证验证码
         if (true) {
             // 执行登录  生成token
             String token = StaticUtil.md5Hex(generalUser.getId().toString());
-            cacheMap.set(token, JSONUtil.toJSONString(new GeneralUser(generalUser.getId(), generalUser.getLoginPhone(), generalUser.getStatus())));
+            cacheMap.set(token, JSONUtil.toJSONString(new GeneralUser(generalUser.getId(), generalUser.getLoginPhone(), generalUser.getStatus(), generalUser.getName())));
             return token;
         } else {
             throw new CommonException(DefinedCode.PARAMSERROR, "验证码错误！");

@@ -71,10 +71,11 @@ public class GeneralUser extends EntityModel {
         this.status = status;
     }
 
-    public GeneralUser(Long id,String loginPhone, Integer status) {
+    public GeneralUser(Long id,String loginPhone, Integer status,String name) {
         super.setId(id);
         this.loginPhone = loginPhone;
         this.status = status;
+        this.name = name;
     }
 
 }

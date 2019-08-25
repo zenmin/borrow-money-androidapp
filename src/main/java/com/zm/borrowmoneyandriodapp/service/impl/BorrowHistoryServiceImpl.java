@@ -1,6 +1,8 @@
 package com.zm.borrowmoneyandriodapp.service.impl;
 
+import com.zm.borrowmoneyandriodapp.common.CommonException;
 import com.zm.borrowmoneyandriodapp.common.constant.CommonConstant;
+import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
 import com.zm.borrowmoneyandriodapp.service.BorrowHistoryService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -45,7 +47,7 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
         if (StringUtils.isNotBlank(borrow_history.getCreateTimeQuery())) {
             borrow_history.setCreateTime(DateUtil.parseToDate(borrow_history.getCreateTimeQuery()));
         }
-        List<BorrowHistory> borrow_historys = borrow_historyMapper.selectList(new QueryWrapper<>(borrow_history));
+        List<BorrowHistory> borrow_historys = borrow_historyMapper.selectList(new QueryWrapper<>(borrow_history).orderByDesc("createTime"));
         return borrow_historys;
     }
 
@@ -54,7 +56,7 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
         if (StringUtils.isNotBlank(borrow_history.getCreateTimeQuery())) {
             borrow_history.setCreateTime(DateUtil.parseToDate(borrow_history.getCreateTimeQuery()));
         }
-        IPage<BorrowHistory> borrow_historyIPage = borrow_historyMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), new QueryWrapper<>(borrow_history));
+        IPage<BorrowHistory> borrow_historyIPage = borrow_historyMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), new QueryWrapper<>(borrow_history).orderByDesc("createTime"));
         return pager.of(borrow_historyIPage);
     }
 
@@ -62,28 +64,36 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
     @Transactional
     public BorrowHistory save(BorrowHistory borrow_history) {
         if (Objects.nonNull(borrow_history.getId())) {
+            // 管理员更新
             Integer statusCode = borrow_history.getStatusCode();
-            if (statusCode == CommonConstant.BORROW_STATUS.REJECT.getCode()) {
-                borrow_history.setTimeSix(new Date());
+            if (Objects.nonNull(statusCode)) {
+                if (statusCode == CommonConstant.BORROW_STATUS.REJECT.getCode()) {
+                    borrow_history.setTimeSix(new Date());
+                }
+                if (statusCode == CommonConstant.BORROW_STATUS.SQ.getCode()) {
+                    borrow_history.setTimeOne(new Date());
+                }
+                if (statusCode == CommonConstant.BORROW_STATUS.SHZ.getCode()) {
+                    borrow_history.setTimeTwo(new Date());
+                }
+                if (statusCode == CommonConstant.BORROW_STATUS.QYZ.getCode()) {
+                    borrow_history.setTimeThree(new Date());
+                }
+                if (statusCode == CommonConstant.BORROW_STATUS.FKZ.getCode()) {
+                    borrow_history.setTimeFour(new Date());
+                }
+                if (statusCode == CommonConstant.BORROW_STATUS.HKZ.getCode()) {
+                    borrow_history.setTimeFive(new Date());
+                }
             }
-            if (statusCode == CommonConstant.BORROW_STATUS.SQ.getCode()) {
-                borrow_history.setTimeOne(new Date());
-            }
-            if (statusCode == CommonConstant.BORROW_STATUS.SHZ.getCode()) {
-                borrow_history.setTimeTwo(new Date());
-            }
-            if (statusCode == CommonConstant.BORROW_STATUS.QYZ.getCode()) {
-                borrow_history.setTimeThree(new Date());
-            }
-            if (statusCode == CommonConstant.BORROW_STATUS.FKZ.getCode()) {
-                borrow_history.setTimeFour(new Date());
-            }
-            if (statusCode == CommonConstant.BORROW_STATUS.HKZ.getCode()) {
-                borrow_history.setTimeFive(new Date());
-            }
-
             borrow_historyMapper.updateById(borrow_history);
         } else {
+            // 用户提交申请
+            // 查询当前用户是否已经有再审批中的
+            Integer count = borrow_historyMapper.selectCount(new QueryWrapper<BorrowHistory>().eq("uid", borrow_history.getUid()).in("statusCode", Lists.newArrayList(1, 2, 3, 4, 5)));
+            if (count > 0) {
+                throw new CommonException(DefinedCode.PARAMS_ERROR, "你已有在进行中的借款记录！");
+            }
             borrow_historyMapper.insert(borrow_history);
         }
         return borrow_history;

@@ -1,6 +1,8 @@
 package com.zm.borrowmoneyandriodapp.service.impl;
 
+import com.zm.borrowmoneyandriodapp.common.CommonException;
 import com.zm.borrowmoneyandriodapp.common.constant.CommonConstant;
+import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
 import com.zm.borrowmoneyandriodapp.components.CacheMap;
 import com.zm.borrowmoneyandriodapp.service.GeneralUserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -69,6 +71,16 @@ public class GeneralUserServiceImpl implements GeneralUserService {
     public GeneralUser save(GeneralUser general_user) {
         if (Objects.nonNull(general_user.getId())) {
             general_userMapper.updateById(general_user);
+            // 更新缓存
+            String token = StaticUtil.md5Hex(general_user.getId().toString());
+            Object o = cacheMap.get(token);
+            if (Objects.nonNull(o)) {
+                GeneralUser generalUser = JSONUtil.parseObject(o.toString(), GeneralUser.class);
+                if (Objects.nonNull(general_user.getStatus())) {
+                    generalUser.setStatus(general_user.getStatus());
+                    cacheMap.set(token, JSONUtil.toJSONString(generalUser));
+                }
+            }
         } else {
             general_userMapper.insert(general_user);
         }
@@ -94,6 +106,9 @@ public class GeneralUserServiceImpl implements GeneralUserService {
         HttpServletRequest request = StaticUtil.getRequest();
         Object token = request.getAttribute("token");
         Object o = cacheMap.get(token.toString());
+        if (Objects.isNull(o)) {
+            throw new CommonException(DefinedCode.NOTAUTH, "登录超时，请重新登录！");
+        }
         GeneralUser generalUser = JSONUtil.parseObject(o.toString(), GeneralUser.class);
         return generalUser;
     }

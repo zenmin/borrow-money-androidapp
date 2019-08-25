@@ -116,10 +116,10 @@ public class BorrowHistoryController {
      */
     @ApiOperation(value = "带ID更新 不带ID新增", response = ResponseEntity.class)
     @PostMapping("/approved")
-    @RequireRole
     public ResponseEntity approved(BorrowHistory borrow_history) {
         GeneralUser loginUser = generalUserService.getLoginUser();
         borrow_history.setUid(loginUser.getId());
+        borrow_history.setUName(loginUser.getName());
         if (StringUtils.isBlank(borrow_history.getReceiveAcount()) || StringUtils.isBlank(borrow_history.getBrrowType())) {
             throw new CommonException(DefinedCode.PARAMSERROR, "银行卡账号或借款用途不能为空");
         }
@@ -131,5 +131,20 @@ public class BorrowHistoryController {
         borrow_history.setStatusCode(CommonConstant.BORROW_STATUS.SQ.getCode());
         return ResponseEntity.success(borrow_historyService.save(borrow_history));
     }
+
+    /**
+     * 当前登录用户的借款记录
+     *
+     * @return
+     */
+    @ApiOperation(value = "当前登录用户的借款记录", response = ResponseEntity.class)
+    @PostMapping("/approvedList")
+    public ResponseEntity approvedList() {
+        GeneralUser loginUser = generalUserService.getLoginUser();
+        BorrowHistory borrowHistory = new BorrowHistory();
+        borrowHistory.setId(loginUser.getId());
+        return ResponseEntity.success(borrow_historyService.list(borrowHistory));
+    }
+
 
 }

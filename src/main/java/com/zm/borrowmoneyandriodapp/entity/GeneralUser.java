@@ -65,8 +65,8 @@ public class GeneralUser extends EntityModel {
     @ApiModelProperty(value = "用户状态1启用 0禁用")
     private Integer status;
 
-    @ApiModelProperty(value = "额度编码 1:10000 2:12000")
-    private Integer positionCode;
+    @ApiModelProperty(value = "额度")
+    private Double positionCode;
 
     public GeneralUser(String loginPhone, Integer status) {
         this.loginPhone = loginPhone;

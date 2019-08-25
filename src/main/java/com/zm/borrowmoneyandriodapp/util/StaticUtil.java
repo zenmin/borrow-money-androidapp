@@ -14,6 +14,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
@@ -126,6 +128,26 @@ public class StaticUtil {
 
     public static String md5Hex(byte[] code) {
         return DigestUtils.md5Hex(code);
+    }
+
+    public static String uploadFile(byte[] file, String filePath, String fileName) {
+        try {
+            File targetFile = new File(filePath);
+            if (!targetFile.exists()) {
+                targetFile.mkdirs();
+            }
+            boolean b = targetFile.canWrite();
+            if (!b) {
+                throw new CommonException(DefinedCode.PARAMS_ERROR, "文件夹：" + targetFile.getAbsolutePath() + " 没有写入权限，请给予权限！");
+            }
+            FileOutputStream out = new FileOutputStream(filePath + fileName);
+            out.write(file);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return filePath + fileName;
     }
 
     /**

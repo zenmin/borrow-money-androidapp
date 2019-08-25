@@ -89,6 +89,7 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
                 if (statusCode == CommonConstant.BORROW_STATUS.HKZ.getCode()) {
                     borrow_history.setTimeFive(new Date());
                 }
+                borrow_history.setStatus(CommonConstant.BORROW_STATUS.getValue(statusCode));
             }
             borrow_historyMapper.updateById(borrow_history);
         } else {

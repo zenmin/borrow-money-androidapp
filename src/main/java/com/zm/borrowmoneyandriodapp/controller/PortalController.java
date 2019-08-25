@@ -25,4 +25,9 @@ public class PortalController {
         return "/";
     }
 
+    @RequestMapping("/mg")
+    public String toAdmin(){
+        return "index";
+    }
+
 }

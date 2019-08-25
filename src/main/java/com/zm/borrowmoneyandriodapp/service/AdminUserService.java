@@ -25,4 +25,7 @@ public interface AdminUserService {
 
     AdminUser getLoginUser();
 
+    AdminUser getLoginUserByToken(String token);
+
+    boolean updateMyPwd(String oldPwd, String newPwd);
 }

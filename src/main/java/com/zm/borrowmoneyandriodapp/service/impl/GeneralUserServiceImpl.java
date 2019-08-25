@@ -62,8 +62,13 @@ public class GeneralUserServiceImpl implements GeneralUserService {
         if (StringUtils.isNotBlank(general_user.getCreateTimeQuery())) {
             general_user.setCreateTime(DateUtil.parseToDate(general_user.getCreateTimeQuery()));
         }
-        IPage<GeneralUser> general_userIPage = general_userMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), new QueryWrapper<>(general_user));
-        return pager.of(general_userIPage);
+        QueryWrapper<GeneralUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("createTime");
+        if (StringUtils.isNotBlank(general_user.getName())) {
+            queryWrapper.like("name", general_user.getName()).or(o -> o.eq("phone", general_user.getName()).or(j -> j.eq("loginPhone", general_user.getName())));
+        }
+        IPage<GeneralUser> general_userIPage = general_userMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), queryWrapper);
+        return Pager.of(general_userIPage);
     }
 
     @Override

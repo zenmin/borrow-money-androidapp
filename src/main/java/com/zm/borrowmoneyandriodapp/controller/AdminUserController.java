@@ -3,6 +3,7 @@ package com.zm.borrowmoneyandriodapp.controller;
 import io.swagger.annotations.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.zm.borrowmoneyandriodapp.common.ResponseEntity;
 import com.zm.borrowmoneyandriodapp.entity.DO.Pager;
@@ -90,5 +91,17 @@ public class AdminUserController {
         return ResponseEntity.success(adminUserService.delete(ids));
     }
 
+    /**
+     * 修改密码
+     *
+     * @param oldPwd
+     * @param newPwd
+     * @return
+     */
+    @ApiOperation(value = "修改密码", response = ResponseEntity.class)
+    @PostMapping("/updateMyPwd")
+    public ResponseEntity updateMyPwd(@RequestParam(required = true) String oldPwd, @RequestParam(required = true) String newPwd) {
+        return ResponseEntity.success(adminUserService.updateMyPwd(oldPwd, newPwd));
+    }
 
 }

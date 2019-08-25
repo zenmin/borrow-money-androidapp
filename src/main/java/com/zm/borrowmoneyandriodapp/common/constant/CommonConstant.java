@@ -28,7 +28,7 @@ public class CommonConstant {
     public enum BORROW_STATUS {
 
         REJECT(0, "审核不通过"),
-        SQ(1, "借款申请"),
+        SQ(1, "已申请"),
         SHZ(2, "审核中"),
         QYZ(3, "签约中"),
         FKZ(4, "放款中"),

@@ -53,11 +53,15 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
 
     @Override
     public Pager listByPage(Pager pager, BorrowHistory borrow_history) {
-        if (StringUtils.isNotBlank(borrow_history.getCreateTimeQuery())) {
-            borrow_history.setCreateTime(DateUtil.parseToDate(borrow_history.getCreateTimeQuery()));
+        QueryWrapper<BorrowHistory> borrow_historyIPage = new QueryWrapper<BorrowHistory>().orderByDesc("createTime");
+        if (Objects.nonNull(borrow_history.getUid())) {
+            borrow_historyIPage.eq("uid", borrow_history.getUid());
         }
-        IPage<BorrowHistory> borrow_historyIPage = borrow_historyMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), new QueryWrapper<>(borrow_history).orderByDesc("createTime"));
-        return pager.of(borrow_historyIPage);
+        if (StringUtils.isNotBlank(borrow_history.getUName())) {
+            borrow_historyIPage.like("uName", borrow_history.getUName()).or(o -> o.eq("receiveAcount", borrow_history.getUName()));
+        }
+        IPage<BorrowHistory> page = borrow_historyMapper.selectPage(new Page<>(pager.getNum(), pager.getSize()), borrow_historyIPage);
+        return Pager.of(page);
     }
 
     @Override

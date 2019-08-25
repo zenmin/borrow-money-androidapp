@@ -45,5 +45,5 @@ public class AdminUser extends EntityModel {
 
     private String lastLoginIp;
 
-
+    private Integer status;
 }

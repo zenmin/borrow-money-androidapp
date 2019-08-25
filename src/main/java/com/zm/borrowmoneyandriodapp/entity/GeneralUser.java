@@ -37,6 +37,8 @@ public class GeneralUser extends EntityModel {
 
     private String name;
 
+    private String mail;
+
     private String card;
 
     private String phone;

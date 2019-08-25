@@ -1,5 +1,7 @@
 package com.zm.borrowmoneyandriodapp.service.impl;
 
+import com.zm.borrowmoneyandriodapp.common.CommonException;
+import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
 import com.zm.borrowmoneyandriodapp.components.CacheMap;
 import com.zm.borrowmoneyandriodapp.service.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -90,10 +92,29 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     public AdminUser getLoginUser() {
         HttpServletRequest request = StaticUtil.getRequest();
-        String token = request.getAttribute("token").toString();
+        String token = request.getHeader("token");
         Object o = cacheMap.get(token);
         AdminUser user = JSONUtil.parseObject(o.toString(), AdminUser.class);
         return user;
+    }
+
+    @Override
+    public AdminUser getLoginUserByToken(String token) {
+        Object o = cacheMap.get(token);
+        AdminUser user = JSONUtil.parseObject(o.toString(), AdminUser.class);
+        return user;
+    }
+
+    @Override
+    public boolean updateMyPwd(String oldPwd, String newPwd) {
+        AdminUser loginUser = this.getLoginUser();
+        AdminUser user = adminUserMapper.selectOne(new QueryWrapper<AdminUser>().eq("id", loginUser.getId()).eq("password", StaticUtil.md5Hex(oldPwd)));
+        if (Objects.isNull(user)) {
+            throw new CommonException(DefinedCode.PARAMS_ERROR, "原密码错误！");
+        }
+        user.setPassword(StaticUtil.md5Hex(newPwd));
+        int i = adminUserMapper.updateById(user);
+        return i > 0;
     }
 
 

@@ -146,5 +146,19 @@ public class BorrowHistoryController {
         return ResponseEntity.success(borrow_historyService.list(borrowHistory));
     }
 
+    /**
+     * 带ID更新 不带ID新增
+     *
+     * @param borrow_history
+     * @return
+     */
+    @ApiOperation(value = "带ID更新 不带ID新增", response = ResponseEntity.class)
+    @PostMapping("/saveMyInfo")
+    @RequireRole
+    public ResponseEntity saveMyInfo(BorrowHistory borrow_history) {
+        borrow_history.setUid(generalUserService.getLoginUser().getId());
+        return ResponseEntity.success(borrow_historyService.save(borrow_history));
+    }
+
 
 }

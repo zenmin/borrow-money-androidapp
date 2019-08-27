@@ -67,16 +67,4 @@ public class LoginController {
 
         return ResponseEntity.success(ImmutableMap.of("token", token));
     }
-
-    @PostMapping("/reg_user")
-    @ApiOperation(value = "普通用户注册", response = ResponseEntity.class)
-    @RateLimiter(value = "2", target = CommonConstant.LIMIT_USER_IP)
-    public ResponseEntity regUser(@RequestParam(required = true) String phone,
-                                    @RequestParam(required = true) String code, HttpServletRequest request) {
-
-        boolean success = loginService.regUser(phone, code, IpHelper.getRequestIpAddr(request));
-
-        return ResponseEntity.success(success);
-    }
-
 }

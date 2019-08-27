@@ -55,7 +55,7 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public void logOutAdmin() {
         HttpServletRequest request = StaticUtil.getRequest();
-        Object token = request.getAttribute("token");
+        Object token = request.getHeader("token");
         if (Objects.nonNull(token)) {
             cacheMap.remove(token.toString());
         }
@@ -86,7 +86,10 @@ public class LoginServiceImpl implements LoginService {
         // 查询手机号是否存在
         GeneralUser generalUser = generalUserMapper.selectOne(new QueryWrapper<GeneralUser>().eq("loginPhone", phone));
         if (Objects.isNull(generalUser)) {
-            throw new CommonException(DefinedCode.NOTFOUND, "用户未注册，请先注册！");
+            // 用户不存在  执行注册
+            GeneralUser user = new GeneralUser(phone, 1);
+            generalUserMapper.insert(user);
+            generalUser = user;
         }
 
         if (generalUser.getStatus() == 0) {
@@ -103,23 +106,5 @@ public class LoginServiceImpl implements LoginService {
             throw new CommonException(DefinedCode.PARAMSERROR, "验证码错误！");
         }
     }
-
-    @Override
-    public boolean regUser(String phone, String code, String requestIpAddr) {
-        // 查询手机号是否存在
-        GeneralUser generalUser = generalUserMapper.selectOne(new QueryWrapper<GeneralUser>().eq("loginPhone", phone));
-        if (Objects.nonNull(generalUser)) {
-            throw new CommonException(DefinedCode.NOTFOUND, "用户已注册，请直接登录！");
-        }
-        // 验证验证码
-        if (true) {
-            GeneralUser user = new GeneralUser(phone, 1);
-            generalUserMapper.insert(user);
-            return true;
-        } else {
-            throw new CommonException(DefinedCode.PARAMSERROR, "验证码错误！");
-        }
-    }
-
 
 }

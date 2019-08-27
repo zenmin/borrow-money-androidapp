@@ -109,7 +109,7 @@ public class GeneralUserServiceImpl implements GeneralUserService {
     @Override
     public GeneralUser getLoginUser() {
         HttpServletRequest request = StaticUtil.getRequest();
-        Object token = request.getAttribute("token");
+        Object token = request.getHeader("token");
         Object o = cacheMap.get(token.toString());
         if (Objects.isNull(o)) {
             throw new CommonException(DefinedCode.NOTAUTH, "登录超时，请重新登录！");
@@ -121,10 +121,16 @@ public class GeneralUserServiceImpl implements GeneralUserService {
     @Override
     public GeneralUser saveMyInfo(GeneralUser generalUser) {
         GeneralUser loginUser = this.getLoginUser();
-        // 查询当期用户是否已经有额度
+        // 查询当前用户是否已经有额度
         GeneralUser user = general_userMapper.selectById(loginUser.getId());
         if (Objects.nonNull(user.getPositionCode())) {
             generalUser.setPositionCode(null);
+        }
+        // 最大30000
+        if (Objects.nonNull(generalUser.getPositionCode())) {
+            if (generalUser.getPositionCode() > 30000) {
+                generalUser.setPositionCode(30000D);
+            }
         }
         generalUser.setId(user.getId());
         general_userMapper.updateById(generalUser);

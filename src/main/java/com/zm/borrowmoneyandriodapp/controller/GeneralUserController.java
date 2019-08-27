@@ -119,6 +119,6 @@ public class GeneralUserController {
     @PostMapping("/getMyInfo")
     public ResponseEntity getMyInfo() {
         GeneralUser loginUser = general_userService.getLoginUser();
-        return ResponseEntity.success(loginUser);
+        return this.getOne(loginUser.getId());
     }
 }

@@ -17,6 +17,4 @@ public interface LoginService {
 
     String loginByUser(String phone, String code,String ip);
 
-    boolean regUser(String phone, String code, String requestIpAddr);
-
 }

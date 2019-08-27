@@ -23,4 +23,6 @@ public interface BorrowHistoryService {
 
     boolean delete(String ids);
 
+    BorrowHistory saveMyInfo(BorrowHistory borrow_history);
+
 }

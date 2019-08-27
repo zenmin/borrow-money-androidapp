@@ -3,6 +3,8 @@ package com.zm.borrowmoneyandriodapp.service.impl;
 import com.zm.borrowmoneyandriodapp.common.CommonException;
 import com.zm.borrowmoneyandriodapp.common.constant.CommonConstant;
 import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
+import com.zm.borrowmoneyandriodapp.entity.GeneralUser;
+import com.zm.borrowmoneyandriodapp.mapper.GeneralUserMapper;
 import com.zm.borrowmoneyandriodapp.service.BorrowHistoryService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -36,6 +38,9 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
 
     @Autowired
     BorrowHistoryMapper borrow_historyMapper;
+
+    @Autowired
+    GeneralUserMapper generalUserMapper;
 
     @Override
     public BorrowHistory getOne(Long id) {
@@ -91,6 +96,16 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
                 }
                 borrow_history.setStatus(CommonConstant.BORROW_STATUS.getValue(statusCode));
             }
+            Double positionCode = borrow_history.getPositionCode();
+            if (Objects.nonNull(positionCode)) {
+                BorrowHistory one = this.getOne(borrow_history.getId());
+                Long uid = one.getUid();
+                GeneralUser generalUser = new GeneralUser();
+                generalUser.setId(uid);
+                generalUser.setPositionCode(positionCode);
+                generalUserMapper.updateById(generalUser);
+            }
+
             borrow_historyMapper.updateById(borrow_history);
         } else {
             // 用户提交申请
@@ -100,6 +115,31 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
                 throw new CommonException(DefinedCode.PARAMS_ERROR, "你已有在进行中的借款记录！");
             }
             borrow_historyMapper.insert(borrow_history);
+        }
+        return borrow_history;
+    }
+
+    @Override
+    @Transactional
+    public BorrowHistory saveMyInfo(BorrowHistory borrow_history) {
+        if (Objects.nonNull(borrow_history.getId())) {
+            borrow_history.setUid(null);
+            borrow_history.setStatus(null);
+            borrow_historyMapper.updateById(borrow_history);
+        } else {
+            // 用户提交申请
+            // 查询当前用户是否已经有再审批中的
+            Integer count = borrow_historyMapper.selectCount(new QueryWrapper<BorrowHistory>().eq("uid", borrow_history.getUid()).in("statusCode", Lists.newArrayList(1, 2, 3)));
+            if (count > 0) {
+                throw new CommonException(DefinedCode.PARAMS_ERROR, "你已有在审核中的借款！");
+            } else {
+                borrow_history.setTimeOne(new Date());
+                Integer statusCode = borrow_history.getStatusCode();
+                if (Objects.nonNull(statusCode)) {
+                    borrow_history.setStatus(CommonConstant.BORROW_STATUS.getValue(statusCode));
+                }
+                borrow_historyMapper.insert(borrow_history);
+            }
         }
         return borrow_history;
     }

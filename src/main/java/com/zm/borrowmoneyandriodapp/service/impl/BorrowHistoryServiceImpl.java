@@ -133,6 +133,7 @@ public class BorrowHistoryServiceImpl implements BorrowHistoryService {
             if (count > 0) {
                 throw new CommonException(DefinedCode.PARAMS_ERROR, "你已有在审核中的借款！");
             } else {
+                borrow_history.setArePay(false);
                 borrow_history.setTimeOne(new Date());
                 Integer statusCode = borrow_history.getStatusCode();
                 if (Objects.nonNull(statusCode)) {

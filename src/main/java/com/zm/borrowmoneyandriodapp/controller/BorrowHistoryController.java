@@ -157,7 +157,7 @@ public class BorrowHistoryController {
     @RequireRole
     public ResponseEntity saveMyInfo(BorrowHistory borrow_history) {
         borrow_history.setUid(generalUserService.getLoginUser().getId());
-        return ResponseEntity.success(borrow_historyService.save(borrow_history));
+        return ResponseEntity.success(borrow_historyService.saveMyInfo(borrow_history));
     }
 
 

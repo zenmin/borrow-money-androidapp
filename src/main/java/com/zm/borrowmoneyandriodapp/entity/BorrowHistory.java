@@ -57,6 +57,9 @@ public class BorrowHistory extends EntityModel {
     @ApiModelProperty(value = "借款状态编码0 拒绝 1申请 2审核中 3签约中 4 放款 5还款")
     private Integer statusCode;
 
+    @ApiModelProperty(value = "借款状态")
+    private Boolean arePay;
+
     @ApiModelProperty(value = "借款申请时间", hidden = true)
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date timeOne;

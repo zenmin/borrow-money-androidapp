@@ -146,6 +146,7 @@ public class StaticUtil {
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
+            throw new CommonException(DefinedCode.PARAMS_ERROR, "上传失败，请重试！");
         }
         return filePath + fileName;
     }

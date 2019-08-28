@@ -27,7 +27,7 @@ public class PortalController {
 
     @RequestMapping("/mg")
     public String toAdmin(){
-        return "index";
+        return "mg";
     }
 
 }

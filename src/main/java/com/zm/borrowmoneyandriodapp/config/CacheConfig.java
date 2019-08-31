@@ -38,14 +38,7 @@ public class CacheConfig {
                 .initialCapacity(100)    // 设置初始容量为100
                 .concurrencyLevel(10) // 设置并发级别为10
                 .recordStats() // 开启缓存统计
-                .removalListener(new RemovalListener<String, Object>() {
-                    @Override
-                    public void onRemoval(RemovalNotification<String, Object> rn) {
-                        if (log.isInfoEnabled()) {
-                            log.info("缓存被手动移除{}:{}", rn.getKey(), rn.getValue());
-                        }
-                    }
-                }).build();
+                .build();
 
     }
 
@@ -53,7 +46,7 @@ public class CacheConfig {
     @Bean
     public com.google.common.cache.Cache<String, Object> limitCache() {
         return CacheBuilder.newBuilder().maximumSize(1000)
-                .expireAfterWrite(10, TimeUnit.SECONDS)         // 写入后10s删除
+                .expireAfterWrite(60, TimeUnit.SECONDS)         // 写入后10s删除
                 .initialCapacity(50)    // 设置初始容量为100
                 .concurrencyLevel(10) // 设置并发级别为10
                 .recordStats() // 开启缓存统计

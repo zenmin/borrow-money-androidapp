@@ -61,4 +61,10 @@ public class CacheMap {
     public Object limitGet(String key) {
         return StringUtils.isNotEmpty(key) ? limitCache.getIfPresent(key) : null;
     }
+
+    public void limitRemove(String key) {
+        if (StringUtils.isNotEmpty(key)) {
+            limitCache.invalidate(key);
+        }
+    }
 }

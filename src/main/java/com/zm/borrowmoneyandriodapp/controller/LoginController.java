@@ -1,20 +1,30 @@
 package com.zm.borrowmoneyandriodapp.controller;
 
 import com.google.common.collect.ImmutableMap;
+import com.zm.borrowmoneyandriodapp.common.CommonException;
 import com.zm.borrowmoneyandriodapp.common.ResponseEntity;
 import com.zm.borrowmoneyandriodapp.common.constant.CommonConstant;
+import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
+import com.zm.borrowmoneyandriodapp.components.CacheMap;
 import com.zm.borrowmoneyandriodapp.components.annotation.RateLimiter;
 import com.zm.borrowmoneyandriodapp.entity.AdminUser;
 import com.zm.borrowmoneyandriodapp.entity.vo.AdminUserVo;
 import com.zm.borrowmoneyandriodapp.service.AdminUserService;
 import com.zm.borrowmoneyandriodapp.service.LoginService;
+import com.zm.borrowmoneyandriodapp.util.HttpClientUtil;
 import com.zm.borrowmoneyandriodapp.util.IpHelper;
+import com.zm.borrowmoneyandriodapp.util.StaticUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 
 /**
  * @Describle This Class Is
@@ -31,6 +41,12 @@ public class LoginController {
 
     @Autowired
     AdminUserService adminUserService;
+
+    @Autowired
+    CacheMap cacheMap;
+
+    @Value("${spring.profiles.active}")
+    String env;
 
     @PostMapping("/login_admin")
     @ApiOperation(value = "管理员登录", response = ResponseEntity.class)
@@ -59,12 +75,45 @@ public class LoginController {
 
     @PostMapping("/login_user")
     @ApiOperation(value = "普通用户登录", response = ResponseEntity.class)
-    @RateLimiter(value = "3", target = CommonConstant.LIMIT_USER_IP)
+    @RateLimiter(value = "5", target = CommonConstant.LIMIT_USER_IP)
     public ResponseEntity loginUser(@RequestParam(required = true) String phone,
-                                     @RequestParam(required = true) String code, HttpServletRequest request) {
+                                    @RequestParam(required = true) String code, HttpServletRequest request) {
 
         String token = loginService.loginByUser(phone, code, IpHelper.getRequestIpAddr(request));
 
         return ResponseEntity.success(ImmutableMap.of("token", token));
+    }
+
+
+    @PostMapping("/login_send")
+    @RateLimiter(value = "1", target = CommonConstant.LIMIT_USER_IP)
+    public ResponseEntity loginSend(@RequestParam(required = true) String phone, HttpServletRequest request) {
+        Object o = cacheMap.limitGet(phone);
+        if (Objects.nonNull(o)) {
+            throw new CommonException(DefinedCode.PARAMSERROR, "已经发送过短信，请稍后再试！");
+        }
+
+        // 生成验证码
+        Random random = new Random();
+        String code = String.valueOf(random.nextInt(4));
+        if (env.startsWith("dev")) {
+            code = "123456";
+        } else {
+            Map<String, Object> map = ImmutableMap.of("appkey", "2c302339f63c4", "phone", phone,
+                    "zone", "86", "templateCode", "6977554", "code", code);
+            String s = null;
+            try {
+                s = HttpClientUtil.sendPost("http://webapi.sms.mob.com/custom/msg", map);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Map result = StaticUtil.readToMap(s, "");
+            String status = result.get("status").toString();
+            if (!"200".equals(status)) {
+                throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
+            }
+        }
+        cacheMap.limitSet(phone, code);
+        return ResponseEntity.success(true);
     }
 }

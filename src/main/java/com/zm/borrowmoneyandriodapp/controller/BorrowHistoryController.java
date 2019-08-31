@@ -48,7 +48,6 @@ public class BorrowHistoryController {
     @ApiOperation(value = "根据id查询一条数据", response = ResponseEntity.class)
     @ApiImplicitParam(name = "id", value = "主键", required = true)
     @PostMapping("/getOne")
-    @RequireRole
     public ResponseEntity getOne(Long id) {
         return ResponseEntity.success(borrow_historyService.getOne(id));
     }
@@ -142,7 +141,7 @@ public class BorrowHistoryController {
     public ResponseEntity approvedList() {
         GeneralUser loginUser = generalUserService.getLoginUser();
         BorrowHistory borrowHistory = new BorrowHistory();
-        borrowHistory.setId(loginUser.getId());
+        borrowHistory.setUid(loginUser.getId());
         return ResponseEntity.success(borrow_historyService.list(borrowHistory));
     }
 
@@ -154,7 +153,6 @@ public class BorrowHistoryController {
      */
     @ApiOperation(value = "带ID更新 不带ID新增", response = ResponseEntity.class)
     @PostMapping("/saveMyInfo")
-    @RequireRole
     public ResponseEntity saveMyInfo(BorrowHistory borrow_history) {
         borrow_history.setUid(generalUserService.getLoginUser().getId());
         return ResponseEntity.success(borrow_historyService.saveMyInfo(borrow_history));

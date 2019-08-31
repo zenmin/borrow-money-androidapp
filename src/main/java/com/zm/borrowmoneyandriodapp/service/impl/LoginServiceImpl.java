@@ -1,6 +1,7 @@
 package com.zm.borrowmoneyandriodapp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.collect.ImmutableMap;
 import com.zm.borrowmoneyandriodapp.common.CommonException;
 import com.zm.borrowmoneyandriodapp.common.constant.CommonConstant;
 import com.zm.borrowmoneyandriodapp.common.constant.DefinedCode;
@@ -11,12 +12,16 @@ import com.zm.borrowmoneyandriodapp.mapper.AdminUserMapper;
 import com.zm.borrowmoneyandriodapp.mapper.GeneralUserMapper;
 import com.zm.borrowmoneyandriodapp.service.GeneralUserService;
 import com.zm.borrowmoneyandriodapp.service.LoginService;
+import com.zm.borrowmoneyandriodapp.util.HttpClientUtil;
 import com.zm.borrowmoneyandriodapp.util.JSONUtil;
 import com.zm.borrowmoneyandriodapp.util.StaticUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -35,6 +40,9 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     GeneralUserMapper generalUserMapper;
+
+    @Value("${spring.profiles.active}")
+    String env;
 
     @Override
     public String loginByAdmin(String username, String password, String ip) {
@@ -80,9 +88,30 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public String loginByUser(String phone, String code, String ip) {
-        if (phone.length() != 11 || !phone.startsWith("1")) {
-            throw new CommonException(DefinedCode.PARAMSERROR, "手机号格式不正确！");
-        }
+
+        // 验证验证码
+//            Map<String, Object> map = ImmutableMap.of("appkey", "2c302339f63c4", "phone", phone, "zone", "86", "code", code);
+//            String s = null;
+//            try {
+//                s = HttpClientUtil.sendPost("http://webapi.sms.mob.com/sms/verify", map);
+//                System.out.println(s);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+////            }
+//            Map result = StaticUtil.readToMap(s, "");
+//            String status = result.get("status").toString();
+//            if (!"200".equals(status)) {
+//                throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
+//            }
+            Object o = cacheMap.limitGet(phone);
+            if (Objects.nonNull(o)) {
+                if (!code.equals(o.toString())) {
+                    throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
+                }
+            } else {
+                throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
+            }
+
         // 查询手机号是否存在
         GeneralUser generalUser = generalUserMapper.selectOne(new QueryWrapper<GeneralUser>().eq("loginPhone", phone));
         if (Objects.isNull(generalUser)) {
@@ -95,16 +124,11 @@ public class LoginServiceImpl implements LoginService {
         if (generalUser.getStatus() == 0) {
             throw new CommonException(DefinedCode.AUTHERROR, "用户已被禁用，请联系客服！");
         }
-
-        // 验证验证码
-        if (true) {
-            // 执行登录  生成token
-            String token = StaticUtil.md5Hex(generalUser.getId().toString());
-            cacheMap.set(token, JSONUtil.toJSONString(new GeneralUser(generalUser.getId(), generalUser.getLoginPhone(), generalUser.getStatus(), generalUser.getName())));
-            return token;
-        } else {
-            throw new CommonException(DefinedCode.PARAMSERROR, "验证码错误！");
-        }
+        cacheMap.limitRemove(phone);
+        // 执行登录  生成token
+        String token = StaticUtil.md5Hex(generalUser.getId().toString());
+        cacheMap.set(token, JSONUtil.toJSONString(new GeneralUser(generalUser.getId(), generalUser.getLoginPhone(), generalUser.getStatus(), generalUser.getName())));
+        return token;
     }
 
 }

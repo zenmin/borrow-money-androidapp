@@ -2,6 +2,7 @@ package com.zm.borrowmoneyandriodapp.entity.base;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -21,6 +22,7 @@ import java.util.Date;
 @MappedSuperclass
 @Data
 @JsonIgnoreProperties(value = { "hibernateLazyInitializer", "handler" })
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public abstract class EntityModel implements Serializable {
 
     @Id

@@ -13,6 +13,7 @@ import com.zm.borrowmoneyandriodapp.service.AdminUserService;
 import com.zm.borrowmoneyandriodapp.service.LoginService;
 import com.zm.borrowmoneyandriodapp.util.HttpClientUtil;
 import com.zm.borrowmoneyandriodapp.util.IpHelper;
+import com.zm.borrowmoneyandriodapp.util.SmsUtil;
 import com.zm.borrowmoneyandriodapp.util.StaticUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,6 +49,9 @@ public class LoginController {
     @Value("${spring.profiles.active}")
     String env;
 
+    @Autowired
+    SmsUtil smsUtil;
+
     @PostMapping("/login_admin")
     @ApiOperation(value = "管理员登录", response = ResponseEntity.class)
     @RateLimiter(value = "3", target = CommonConstant.LIMIT_USER_IP)
@@ -78,9 +82,7 @@ public class LoginController {
     @RateLimiter(value = "5", target = CommonConstant.LIMIT_USER_IP)
     public ResponseEntity loginUser(@RequestParam(required = true) String phone,
                                     @RequestParam(required = true) String code, HttpServletRequest request) {
-
         String token = loginService.loginByUser(phone, code, IpHelper.getRequestIpAddr(request));
-
         return ResponseEntity.success(ImmutableMap.of("token", token));
     }
 
@@ -92,26 +94,12 @@ public class LoginController {
         if (Objects.nonNull(o)) {
             throw new CommonException(DefinedCode.PARAMSERROR, "已经发送过短信，请稍后再试！");
         }
-
         // 生成验证码
-        Random random = new Random();
-        String code = String.valueOf(random.nextInt(4));
+        String code = String.valueOf((int)(Math.random() * 10000));
         if (env.startsWith("dev")) {
             code = "123456";
         } else {
-            Map<String, Object> map = ImmutableMap.of("appkey", "2c302339f63c4", "phone", phone,
-                    "zone", "86", "templateCode", "6977554", "code", code);
-            String s = null;
-            try {
-                s = HttpClientUtil.sendPost("http://webapi.sms.mob.com/custom/msg", map);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Map result = StaticUtil.readToMap(s, "");
-            String status = result.get("status").toString();
-            if (!"200".equals(status)) {
-                throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
-            }
+            smsUtil.sendSms(phone, ImmutableMap.of("code", code));
         }
         cacheMap.limitSet(phone, code);
         return ResponseEntity.success(true);

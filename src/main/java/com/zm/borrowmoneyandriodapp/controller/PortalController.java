@@ -30,4 +30,9 @@ public class PortalController {
         return "mg";
     }
 
+    @RequestMapping("/ios")
+    public String ios(){
+        return "ios";
+    }
+
 }

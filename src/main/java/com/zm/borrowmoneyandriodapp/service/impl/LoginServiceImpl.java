@@ -90,27 +90,14 @@ public class LoginServiceImpl implements LoginService {
     public String loginByUser(String phone, String code, String ip) {
 
         // 验证验证码
-//            Map<String, Object> map = ImmutableMap.of("appkey", "2c302339f63c4", "phone", phone, "zone", "86", "code", code);
-//            String s = null;
-//            try {
-//                s = HttpClientUtil.sendPost("http://webapi.sms.mob.com/sms/verify", map);
-//                System.out.println(s);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-////            }
-//            Map result = StaticUtil.readToMap(s, "");
-//            String status = result.get("status").toString();
-//            if (!"200".equals(status)) {
-//                throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
-//            }
-            Object o = cacheMap.limitGet(phone);
-            if (Objects.nonNull(o)) {
-                if (!code.equals(o.toString())) {
-                    throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
-                }
-            } else {
+        Object o = cacheMap.limitGet(phone);
+        if (Objects.nonNull(o)) {
+            if (!code.equals(o.toString())) {
                 throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
             }
+        } else {
+            throw new CommonException(DefinedCode.PARAMS_ERROR, "验证码错误！");
+        }
 
         // 查询手机号是否存在
         GeneralUser generalUser = generalUserMapper.selectOne(new QueryWrapper<GeneralUser>().eq("loginPhone", phone));
